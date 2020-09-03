@@ -33,6 +33,8 @@ base_url = "https://www.immoweb.be/"
 appart_links = []
 house_links = []
 
+property_type = ["Appartment", "House"]
+
 for page_number in range (1,2):
 
     url_appart_search = "{}fr/recherche/appartement/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance".format(base_url, page_number)
@@ -60,20 +62,13 @@ for page_number in range (1,2):
 
     for url in appart_links:
         driver.get(url)
-        try:
-            element = WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.ID, 'uc-btn-accept-banner'))
-            )
-            if element is not None:
-                element.click()
-                print("button clicked")
-        except Exception as e:
-            print(e)
-
         soup = BeautifulSoup(driver.page_source, "lxml")
-        adress = soup.find_all("p",{'class':'classified__information--address-clickable'})
-        for e in adress:
-            print(e.text)
+        postal_code = driver.find_element_by_css_selector("span.classified__information--address-row > span")
+        city = driver.find_element_by_css_selector("span.classified__information--address-row > span + span + span")
+
+        print(postal_code.text)
+        print(city.text)
+        print(property_type[0])
         driver.close()
         break
 
