@@ -65,10 +65,12 @@ for page_number in range (1,2):
         soup = BeautifulSoup(driver.page_source, "lxml")
         postal_code = driver.find_element_by_css_selector("span.classified__information--address-row > span")
         city = driver.find_element_by_css_selector("span.classified__information--address-row > span + span + span")
+        property_subtype = driver.find_element_by_css_selector("h1.classified__title")
 
         print(postal_code.text)
         print(city.text)
         print(property_type[0])
+        print(property_subtype.text)
         driver.close()
         break
 
