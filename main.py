@@ -98,31 +98,24 @@ for page_number in range(nb_pages):
         property_subtype = driver.find_element_by_css_selector("h1.classified__title")
         property_subtype = property_subtype.text
 
+        price = soup.find("p", attrs={"class": "classified__price"}).find("span").find("span").text.replace(" €", "")
+        is_batch = False
+        # cherche le subtype dans "tous les biens"
+        try:
+            tous_les_biens = soup.find("section", attrs={"class": "classified__cluster"}).find("div") \
+                .find("div").find("div").find("div").find("div").find("div").text.strip()
+            is_batch = len(tous_les_biens) > 0
+        except AttributeError:
+            pass
+
         if alone and re.match(avendretext, property_subtype):
             property_subtype = property_subtype[:-9]
-
-        price = soup.find("p", attrs={"class": "classified__price"}).find("span").find("span").text
-        is_batch = False
-        splits = price.split(" - ")
-        if len(splits) == 1:
-            min_price = max_price = price
-        # si prix =+ range => lot
-        else:
-            min_price = splits[0]
-            max_price = splits[1]
-            # cherche le subtype dans "tous les biens"
-            try:
-                tous_les_biens = soup.find("section", attrs={"class": "classified__cluster"}).find("div")\
-                    .find("div").find("div").find("div").find("div").find("div").text.strip()
-                is_batch = len(tous_les_biens) > 0
-            except AttributeError:
-                pass
 
         print("Postal Code: {}".format(postal_code.text))
         print("City: {}".format(city.text))
         print("Type of property: {}".format(property_type[current_search_id]))
         print("Property Subtype: {}".format(property_subtype))
-        print("Min Price: {} - Max Price: {}".format(min_price, max_price))
+        print("Price: {}".format(price))
         print("Is a batch: {}".format(is_batch))
 
         print("Type of sale: TODO")
