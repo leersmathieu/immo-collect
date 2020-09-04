@@ -123,8 +123,8 @@ for page_number in range(nb_pages):
         meuble = False
         feu_ouvert = False
 
-        terasse = False
-        surface_terasse = None
+        terrasse = False
+        surface_terrasse = None
 
         jardin = False
         surface_jardin = None
@@ -168,9 +168,15 @@ for page_number in range(nb_pages):
                             surface_jardin = int(surface_jardin[0])
                             if surface_jardin > 0:
                                 jardin = True
+                        elif th.startswith("Jardin"):
+                            jardin = True
                         elif th.startswith("Surface de la terrasse"):
-                            surface_terasse = tr.find("td").text.split()
-                            surface_terasse[0]
+                            surface_terrasse = tr.find("td").text.split()
+                            surface_terrasse = int(surface_terrasse[0])
+                            if surface_terrasse > 0:
+                                terrasse = True
+                        elif th.startswith("Terrasse"):
+                            terrasse = True
 
         # try:
         #     list_places = soup.find_all("th", attrs={"class": attributs_class})
@@ -196,18 +202,18 @@ for page_number in range(nb_pages):
         print("Number of rooms:", chamber)
         print("Area:", area)
 
-        print("Fully Equipped kitchen: TODO")
-        print("Furnished: TODO")
-        print("Open fire: TODO")
-        print("Terrace: TODO")
-        print("Garden Area: TODO")  # > 0
-        print("Surface of the land: TODO")
-        print("Surface area of the plot of land: TODO")
-        print("Number of facades: TODO")
-        print("Swimming pool: TODO")
-        print("State of the building:", etat_batiment)  # new, to be renovated...
-
-        # TODO : if information missing => None
+        print("Fully Equipped kitchen:", cuisine_equipe)
+        print("Furnished: TODO", meuble)
+        print("Open fire:", feu_ouvert)
+        print("Terrace:", terrasse)
+        print("Superficie Terrasse:", surface_terrasse)
+        print("Garden:", jardin)
+        print("Garden Area:", surface_jardin)
+        print("Surface of the land:", surface_terrain)
+        print("Surface area of the plot of land:", surface_constructible)
+        print("Number of facades:", facade)
+        print("Swimming pool:", piscine)
+        print("State of the building:", etat_batiment)
 
         # TODO remove me (intend to break the loop for current tests)
         break
