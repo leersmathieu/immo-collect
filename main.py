@@ -115,14 +115,25 @@ for page_number in range(nb_pages):
 
         bien_neuf = get_bool_presence("span", "flag-list__text", "Nouvelle construction", soup)
 
-        chamber = driver.find_element_by_css_selector("div.overview__item > span.overview__text").text.split()
-        chamber = chamber[0]
-
-        area = driver.find_element_by_css_selector("div.overview__column:nth-child(2) > div > span").text.split()
-        area = area[0]
-
         accordion = soup.find_all('div', {"class": "accordion accordion--section"})
-        facade = 0
+        area = None
+        facade = None
+        chamber = None
+        cuisine_equipe = False
+        meuble = False
+        feu_ouvert = False
+
+        terasse = False
+        surface_terasse = None
+
+        jardin = False
+        surface_jardin = None
+        surface_terrain = None
+        surface_constructible = None
+        piscine = False
+        etat_batiment = None
+
+
         for elem in accordion:
             entete = elem.find("h2").text
             if entete == "Général":
@@ -133,9 +144,33 @@ for page_number in range(nb_pages):
                         th = tr.find("th").text.strip()
                         if th.startswith("Façades"):
                             facade = int(tr.find("td").text.strip())
-
-        
-        
+                        elif th.startswith("État du bâtiment"):
+                            etat_batiment = tr.find("td").text.strip()
+            if entete == "Intérieur":
+                lines = elem.find_all("div", {"class": "accordion__content"})
+                for line in lines:
+                    trs = line.find_all("tr")
+                    for tr in trs:
+                        th = tr.find("th").text.strip()
+                        if th.startswith("Surface habitable"):
+                            area = tr.find("td").text.split()
+                            area = int(area[0])
+                        elif th.startswith("Chambres"):
+                            chamber = int(tr.find("td").text.strip())
+            if entete == "Extérieur":
+                lines = elem.find_all("div", {"class": "accordion__content"})
+                for line in lines:
+                    trs = line.find_all("tr")
+                    for tr in trs:
+                        th = tr.find("th").text.strip()
+                        if th.startswith("Surface du jardin"):
+                            surface_jardin = tr.find("td").text.split()
+                            surface_jardin = int(surface_jardin[0])
+                            if surface_jardin > 0:
+                                jardin = True
+                        elif th.startswith("Surface de la terrasse"):
+                            surface_terasse = tr.find("td").text.split()
+                            surface_terasse[0]
 
         # try:
         #     list_places = soup.find_all("th", attrs={"class": attributs_class})
@@ -147,7 +182,6 @@ for page_number in range(nb_pages):
 
         # # <th scope="row" class="classified-table__header">Chambres</th>
         # # <td class="classified-table__data">1</td>
-        area = 0
 
         print("Postal Code: {}".format(postal_code.text))
         print("City: {}".format(city.text))
@@ -171,7 +205,7 @@ for page_number in range(nb_pages):
         print("Surface area of the plot of land: TODO")
         print("Number of facades: TODO")
         print("Swimming pool: TODO")
-        print("State of the building: TODO")  # new, to be renovated...
+        print("State of the building:", etat_batiment)  # new, to be renovated...
 
         # TODO : if information missing => None
 
