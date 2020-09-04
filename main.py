@@ -92,7 +92,6 @@ for page_number in range(nb_pages):
 
     for url in collected_links:
         (appart_links if current_search_id == 0 else house_links).append(url)
-        url = "https://www.immoweb.be/fr/annonce/bien-exceptionnel/a-vendre/dolembreux/4140/8721950?searchId=5f524465d696c"
         driver.get(url)
         soup = BeautifulSoup(driver.page_source, "lxml")
 
@@ -107,7 +106,6 @@ for page_number in range(nb_pages):
         #####################
 
         # Base
-        price = None
         vente_publique = get_bool_presence("h2", "text-block__title", "Vente publique", soup)
         rapport = get_bool_presence("th", "classified-table__header", "Immeuble de rapport", soup)
         bien_neuf = get_bool_presence("span", "flag-list__text", "Nouvelle construction", soup)
@@ -140,6 +138,9 @@ for page_number in range(nb_pages):
         # Urbanisme
         surface_constructible = None
 
+        # Finances
+        price = None
+
 
 
         #####################
@@ -148,16 +149,15 @@ for page_number in range(nb_pages):
 
         # Base
         postal_code = driver.find_element_by_css_selector("span.classified__information--address-row > span")
+        postal_code = int(postal_code.text.strip())
         city = driver.find_element_by_css_selector("span.classified__information--address-row > span:nth-last-child(1)")
-
+        city = city.text.strip()
         property_subtype = driver.find_element_by_css_selector("h1.classified__title")
         property_subtype = property_subtype.text
 
         if re.match(avendretext, property_subtype):
             property_subtype = property_subtype[:-9]
 
-        price = soup.find("p", attrs={"class": "classified__price"}).find("span").find("span").text
-        price = price.replace("€", "").strip()
 
 
         accordion = soup.find_all('div', {"class": "accordion accordion--section"})
@@ -254,48 +254,52 @@ for page_number in range(nb_pages):
                             surface_constructible = tr.find("td").text.split()
                             surface_constructible = int(surface_constructible[0])
 
-
-        for _ in range(1, 2):
-            print("Postal Code: {}".format(postal_code.text))
-            print("City: {}".format(city.text))
-            print("Type of property: {}".format(property_type[current_search_id]))
-            print("Property Subtype: {}".format(property_subtype))
-            print("Price: {} €".format(price))
-            # TYPE OF SALES
-            print("Vente publique ?", vente_publique)
-            print("Immeuble de rapport ?", rapport)
-            print("Bien neuf ?", bien_neuf)
-            ################
-            print("Number of rooms:", chamber)
-            print("Area:", area)
-
-            print("Fully Equipped kitchen:", cuisine_equipe)
-            print("Furnished:", meuble)
-            print("Open fire:", feu_ouvert)
-            print("Terrace:", terrasse)
-            print("Superficie Terrasse:", surface_terrasse)
-            print("Garden:", jardin)
-            print("Garden Area:", surface_jardin)
-            print("Surface of the land:", surface_terrain)
-            print("Surface area of the plot of land:", surface_constructible)
-            print("Number of facades:", facade)
-            print("Swimming pool:", piscine)
-            print("State of the building:", etat_batiment)
+            # Finances
+            elif entete == "Finances":
+                lines = elem.find_all("div", {"class": "accordion__content"})
+                for line in lines:
+                    span = line.find_all("span", {"class":"sr-only"})
+                    price = int(span[0].text.replace("€", "").strip())
 
 
-        donnees = {
-            
+        data = {
+            "Lien": url,
+            "Prix": price, 
+            "Type de propriété": property_type[current_search_id],
+            "Vente publique": vente_publique,
+            "Immeuble de rapport": rapport,
+            "Bien neuf": bien_neuf,
+            "Code Postal": postal_code,
+            "Ville": city,
+            "Sous-type de propriété": property_subtype,
+            "Nombre de façades": facade,
+            "Etat du bâtiment": etat_batiment,
+            "Surface habitable": area,
+            "Nombre de chambre(s)": chamber,
+            "Type de cuisine": cuisine_equipe,
+            "Feu ouvert": feu_ouvert,
+            "Meublé": meuble,
+            "Jardin": jardin,
+            "Surface du jardin": surface_jardin,
+            "Terrasse": terrasse,
+            "Surface de la terrasse": surface_terrasse,
+            "Surface totale du terrain": surface_terrain,
+            "Piscine": piscine,
+            "Surface de la zone constructible": surface_constructible
         }
-        # TODO remove me (intend to break the loop for current tests)
-        break
-        
 
+        print(data)
+
+        donnees.append(data)
+
+        
 
     ######################################
     #    Save the infos of each pages    #
     ######################################
 
     # Sauver avec panda => 1 csv : 30 entrées
+
 
 
 driver.close()
