@@ -2,6 +2,8 @@
 import glob
 import os
 import time
+import re
+import pandas as pd
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,8 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-import re
-import pandas as pd
+from function import *
 
 base_url = "https://www.immoweb.be/"
 
@@ -52,7 +53,7 @@ if not os.path.exists("immo-data"):
 url_appart_search = base_url + "fr/recherche/appartement/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
 url_house_search = base_url + "fr/recherche/maison/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
 
-driver = webdriver.Chrome()
+driver = webdriver.Firefox()
 driver.implicitly_wait(10)
 driver.get(url_appart_search.format(1))
 
@@ -69,6 +70,7 @@ try:
         print("button clicked")
 except Exception as e:
     print(e)
+
 # current search between 'appartement' and 'maison'
 current_search_id = 0
 current_url = url_appart_search if current_search_id == 0 else url_house_search
@@ -87,19 +89,13 @@ for page_number in range(nb_pages):
     ######################################
 
     for url in collected_links:
-        url = "https://www.immoweb.be/fr/annonce/appartement/a-vendre/uccle/1180/8917294?searchId=5f51fd006a56b"
         (appart_links if current_search_id == 0 else house_links).append(url)
         driver.get(url)
         soup = BeautifulSoup(driver.page_source, "lxml")
 
         # cherche le subtype dans "tous les biens" et skip si pas vide
-        try:
-            tous_les_biens = soup.find_all("h2", attrs={"class": "text-block__title"})
-            if any("Tous les biens" == bien.text.strip() for bien in tous_les_biens):
-                continue
-        except AttributeError as e:
-            print(e)
-            pass
+        if get_bool_presence("h2", "text-block__title", "Tous les biens", soup):
+            continue
 
         postal_code = driver.find_element_by_css_selector("span.classified__information--address-row > span")
         city = driver.find_element_by_css_selector("span.classified__information--address-row > span:nth-last-child(1)")
@@ -113,32 +109,11 @@ for page_number in range(nb_pages):
         price = soup.find("p", attrs={"class": "classified__price"}).find("span").find("span").text
         price = price.replace("€", "").strip()
 
-        vente_publique = False
-        try:
-            is_vente_publique = soup.find_all("h2", attrs={"class": "text-block__title"})
-            if any("Vente publique" == type_of_sale.text.strip() for type_of_sale in is_vente_publique):
-                vente_publique = True
-        except AttributeError as e:
-            print(e)
-            pass
+        vente_publique = get_bool_presence("h2", "text-block__title", "Vente publique", soup)
 
-        rapport = False
-        try:
-            is_rapport = soup.find_all("th", attrs={"class": "classified-table__header"})
-            if any("Immeuble de rapport" == r.text.strip() for r in is_rapport):
-                rapport = True
-        except AttributeError as e:
-            print(e)
-            pass
+        rapport = get_bool_presence("th", "classified-table__header", "Immeuble de rapport", soup)
 
-        bien_neuf = False
-        try:
-            is_bien_neuf = soup.find_all("span", attrs={"class": "flag-list__text"})
-            if any("Nouvelle construction" == bien.text.strip() for bien in is_bien_neuf):
-                bien_neuf = True
-        except AttributeError as e:
-            print(e)
-            pass
+        bien_neuf = get_bool_presence("span", "flag-list__text", "Nouvelle construction", soup)
 
         chamber = 0
         area = 0
@@ -179,9 +154,7 @@ driver.close()
 ######################################
 #         Concat all the csv         #
 ######################################
-def concat_all_CSV():
-    all_files = glob.glob("./immo-data/*.csv")
-    df = pd.concat([pd.read_csv(filename, index_col=None, header=0) for filename in all_files], axis=0, ignore_index=True)
-    # saved in the current folder
-    df.to_csv("immo_collect.csv")
-    return df
+
+# all_files = glob.glob("./immo-data/*.csv")
+# concat_all_CSV(all_files)
+
