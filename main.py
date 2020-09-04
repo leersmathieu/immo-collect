@@ -91,24 +91,24 @@ for page_number in range(nb_pages):
         driver.get(url)
         soup = BeautifulSoup(driver.page_source, "lxml")
 
+        # cherche le subtype dans "tous les biens" et skip si pas vide
+        try:
+            tous_les_biens = soup.find_all("h2", attrs={"class": "text-block__title"})
+            if any("Tous les biens" == bien.text.strip() for bien in tous_les_biens):
+                continue
+        except AttributeError as e:
+            print(e)
+            pass
+
         postal_code = driver.find_element_by_css_selector("span.classified__information--address-row > span")
         city = driver.find_element_by_css_selector("span.classified__information--address-row > span + span + span")
 
-        alone = True  # == pas un lot
         property_subtype = driver.find_element_by_css_selector("h1.classified__title")
         property_subtype = property_subtype.text
 
         price = soup.find("p", attrs={"class": "classified__price"}).find("span").find("span").text.replace(" €", "")
-        is_batch = False
-        # cherche le subtype dans "tous les biens"
-        try:
-            tous_les_biens = soup.find("section", attrs={"class": "classified__cluster"}).find("div") \
-                .find("div").find("div").find("div").find("div").find("div").text.strip()
-            is_batch = len(tous_les_biens) > 0
-        except AttributeError:
-            pass
 
-        if alone and re.match(avendretext, property_subtype):
+        if re.match(avendretext, property_subtype):
             property_subtype = property_subtype[:-9]
 
         print("Postal Code: {}".format(postal_code.text))
@@ -116,7 +116,6 @@ for page_number in range(nb_pages):
         print("Type of property: {}".format(property_type[current_search_id]))
         print("Property Subtype: {}".format(property_subtype))
         print("Price: {}".format(price))
-        print("Is a batch: {}".format(is_batch))
 
         print("Type of sale: TODO")
         print("Number of rooms: TODO")
