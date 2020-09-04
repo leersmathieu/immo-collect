@@ -53,7 +53,7 @@ if not os.path.exists("immo-data"):
 url_appart_search = base_url + "fr/recherche/appartement/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
 url_house_search = base_url + "fr/recherche/maison/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
 
-driver = webdriver.Firefox()
+driver = webdriver.Chrome()
 driver.implicitly_wait(10)
 driver.get(url_appart_search.format(1))
 
@@ -118,8 +118,21 @@ for page_number in range(nb_pages):
         chamber = driver.find_element_by_css_selector("div.overview__item > span.overview__text").text.split()
         chamber = chamber[0]
 
-        area = driver.find_element_by_css_selector("div.overview__column:nth-child(1) > div.overview__item > span.overview__text").text.split()
+        area = driver.find_element_by_css_selector("div.overview__column:nth-child(2) > div > span").text.split()
         area = area[0]
+
+        accordion = soup.find_all('div', {"class": "accordion accordion--section"})
+        facade = 0
+        for elem in accordion:
+            entete = elem.find("h2").text
+            if entete == "Général":
+                lines = elem.find_all("div", {"class": "accordion__content"})
+                for line in lines:
+                    trs = line.find_all("tr")
+                    for tr in trs:
+                        th = tr.find("th").text.strip()
+                        if th.startswith("Façades"):
+                            facade = int(tr.find("td").text.strip())
 
         
         
