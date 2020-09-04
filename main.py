@@ -52,7 +52,7 @@ if not os.path.exists("immo-data"):
 url_appart_search = base_url + "fr/recherche/appartement/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
 url_house_search = base_url + "fr/recherche/maison/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
 
-driver = webdriver.Firefox()
+driver = webdriver.Chrome()
 driver.implicitly_wait(10)
 driver.get(url_appart_search.format(1))
 
@@ -87,6 +87,7 @@ for page_number in range(nb_pages):
     ######################################
 
     for url in collected_links:
+        url = "https://www.immoweb.be/fr/annonce/appartement/a-vendre/uccle/1180/8917294?searchId=5f51fd006a56b"
         (appart_links if current_search_id == 0 else house_links).append(url)
         driver.get(url)
         soup = BeautifulSoup(driver.page_source, "lxml")
@@ -101,25 +102,60 @@ for page_number in range(nb_pages):
             pass
 
         postal_code = driver.find_element_by_css_selector("span.classified__information--address-row > span")
-        city = driver.find_element_by_css_selector("span.classified__information--address-row > span + span + span")
+        city = driver.find_element_by_css_selector("span.classified__information--address-row > span:nth-last-child(1)")
 
         property_subtype = driver.find_element_by_css_selector("h1.classified__title")
         property_subtype = property_subtype.text
 
-        price = soup.find("p", attrs={"class": "classified__price"}).find("span").find("span").text.replace(" €", "")
-
         if re.match(avendretext, property_subtype):
             property_subtype = property_subtype[:-9]
+
+        price = soup.find("p", attrs={"class": "classified__price"}).find("span").find("span").text
+        price = price.replace("€", "").strip()
+
+        vente_publique = False
+        try:
+            is_vente_publique = soup.find_all("h2", attrs={"class": "text-block__title"})
+            if any("Vente publique" == type_of_sale.text.strip() for type_of_sale in is_vente_publique):
+                vente_publique = True
+        except AttributeError as e:
+            print(e)
+            pass
+
+        rapport = False
+        try:
+            is_rapport = soup.find_all("th", attrs={"class": "classified-table__header"})
+            if any("Immeuble de rapport" == r.text.strip() for r in is_rapport):
+                rapport = True
+        except AttributeError as e:
+            print(e)
+            pass
+
+        bien_neuf = False
+        try:
+            is_bien_neuf = soup.find_all("span", attrs={"class": "flag-list__text"})
+            if any("Nouvelle construction" == bien.text.strip() for bien in is_bien_neuf):
+                bien_neuf = True
+        except AttributeError as e:
+            print(e)
+            pass
+
+        chamber = 0
+        area = 0
 
         print("Postal Code: {}".format(postal_code.text))
         print("City: {}".format(city.text))
         print("Type of property: {}".format(property_type[current_search_id]))
         print("Property Subtype: {}".format(property_subtype))
-        print("Price: {}".format(price))
-
-        print("Type of sale: TODO")
+        print("Price: {} €".format(price))
+        # TYPE OF SALES
+        print("Vente publique ?", vente_publique)
+        print("Immeuble de rapport ?", rapport)
+        print("Bien neuf ?", bien_neuf)
+        ################
         print("Number of rooms: TODO")
         print("Area: TODO")
+
         print("Fully Equipped kitchen: TODO")
         print("Furnished: TODO")
         print("Open fire: TODO")
