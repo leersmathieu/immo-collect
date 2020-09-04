@@ -115,7 +115,25 @@ for page_number in range(nb_pages):
 
         bien_neuf = get_bool_presence("span", "flag-list__text", "Nouvelle construction", soup)
 
-        chamber = 0
+        chamber = driver.find_element_by_css_selector("div.overview__item > span.overview__text").text.split()
+        chamber = chamber[0]
+
+        area = driver.find_element_by_css_selector("div.overview__column:nth-child(1) > div.overview__item > span.overview__text").text.split()
+        area = area[0]
+
+        
+        
+
+        # try:
+        #     list_places = soup.find_all("th", attrs={"class": attributs_class})
+        #     return any(text_to_search == things.text.strip() for things in list_places)
+        # except AttributeError as e:
+        #     print(e)
+        #     pass
+        # return False
+
+        # # <th scope="row" class="classified-table__header">Chambres</th>
+        # # <td class="classified-table__data">1</td>
         area = 0
 
         print("Postal Code: {}".format(postal_code.text))
@@ -128,8 +146,8 @@ for page_number in range(nb_pages):
         print("Immeuble de rapport ?", rapport)
         print("Bien neuf ?", bien_neuf)
         ################
-        print("Number of rooms: TODO")
-        print("Area: TODO")
+        print("Number of rooms:", chamber)
+        print("Area:", area)
 
         print("Fully Equipped kitchen: TODO")
         print("Furnished: TODO")
@@ -142,8 +160,11 @@ for page_number in range(nb_pages):
         print("Swimming pool: TODO")
         print("State of the building: TODO")  # new, to be renovated...
 
+        # TODO : if information missing => None
+
         # TODO remove me (intend to break the loop for current tests)
         break
+        
 
     ######################################
     #    Save the infos of each pages    #
