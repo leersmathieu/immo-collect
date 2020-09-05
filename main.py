@@ -53,8 +53,17 @@ if not os.path.exists("immo-data"):
 url_appart_search = base_url + "fr/recherche/appartement/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
 url_house_search = base_url + "fr/recherche/maison/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
 
-driver = webdriver.Firefox()
-driver.implicitly_wait(10)
+is_firefox = False
+if is_firefox:
+    profile = webdriver.FirefoxProfile()
+    # disable pictures
+    profile.set_preference('permissions.default.image', 2)
+    driver = webdriver.Firefox(firefox_profile=profile)
+else:
+    options = webdriver.ChromeOptions()
+    # hide pictures
+    options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
+    driver = webdriver.Chrome(options=options)
 driver.get(url_appart_search.format(1))
 
 # check existence of the page
