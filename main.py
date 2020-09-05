@@ -6,6 +6,12 @@ from function import *
 
 class CustomThread(Thread):
     def __init__(self, p_start: int, p_end: int, search_id: int) -> None:
+        """
+        a thread constructor
+        :param p_start: the first page to search
+        :param p_end: the last page to search (not included)
+        :param search_id: the type of search between "appartement" and "maison"
+        """
         super().__init__()
         self.p_start = p_start
         self.p_end = p_end
@@ -13,6 +19,11 @@ class CustomThread(Thread):
         self.driver = None
 
     def run(self) -> None:
+        """
+        a task initiating the webdriver and then search in the range provided of page of links to collect all the infos
+        each info of 30 entries is stored in a folder "immo-data"
+        :return: None
+        """
         # init webdriver (firefox or chrome)
         self.driver = init_webdriver(is_firefox=False)
         # check existence of the page
@@ -24,16 +35,30 @@ class CustomThread(Thread):
         self.driver.close()
 
     def get_page_data(self, page_number: int) -> List[Dict]:
-        current_url = (url_appart_search if current_search_id == 0 else url_house_search).format(page_number)
+        """
+        collect all the infos by searching in all the links of an initial page of links
+        self.search_id defines the type of search between "appartement" and "maison"
+        :param page_number: the page number of the search of links
+        :return: a list of collected datas
+        """
+        current_url = (url_appart_search if self.search_id == 0 else url_house_search).format(page_number)
         collected_links = self.collect_links(current_url)
         donnees = []
         for url in collected_links:
             data = collect_info(self.driver, url, self.search_id)
-            donnees.append(data)
-            print(data)
+            if len(data) > 0:
+                donnees.append(data)
+                print(data)
+            else:
+                print("skipping a batch link", url)
         return donnees
 
     def collect_links(self, current_url: str) -> List[str]:
+        """
+        search and return all the links in the provided url
+        :param current_url: the url where to search for links
+        :return: all the founded links
+        """
         # target the right page
         self.driver.get(current_url)
         # take all the links
@@ -55,14 +80,12 @@ if __name__ == '__main__':
 
     """
     # Aparts
-        # DONE list of link by pages
-        # WIP Take info
-        # TODO save as one file
-        # TODO Houses
-        # TODO list of link by pages
-        # TODO Take info
-        # TODO  save as one file
-        # TODO concat files
+        # DONE search by appartment or houses
+        # DONE list of links by page
+        # DONE Take infos for a link
+        # DONE save in a file of 30 entries
+        # DONE concat files
+        # DONE range of pages by thread
     """
 
     current_search_id = 1
