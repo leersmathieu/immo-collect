@@ -3,9 +3,11 @@ import glob
 import os
 import time
 import re
+
 import pandas as pd
 
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -37,11 +39,9 @@ base_url = "https://www.immoweb.be/"
     # TODO concat files
 """
 
-appart_links = []
-house_links = []
-
 property_type = ["Appartement", "Maison"]
 avendretext = re.compile('.+( à vendre)')
+search_for_postal_code = re.compile("/(?P<postal_code>[0-9]+)/[0-9]+\?searchId=")
 
 # make sure the path is created for csv
 if not os.path.exists("immo-data"):
@@ -52,6 +52,7 @@ if not os.path.exists("immo-data"):
 ######################################
 url_appart_search = base_url + "fr/recherche/appartement/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
 url_house_search = base_url + "fr/recherche/maison/a-vendre?countries=BE&isALifeAnnuitySale=false&page={}&orderBy=relevance"
+
 
 is_firefox = False
 if is_firefox:
@@ -64,6 +65,7 @@ else:
     # hide pictures
     options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
     driver = webdriver.Chrome(options=options)
+
 driver.get(url_appart_search.format(1))
 
 # check existence of the page
@@ -85,9 +87,9 @@ current_search_id = 0
 current_url = url_appart_search if current_search_id == 0 else url_house_search
 # max pages to process
 nb_pages = 1  # should be 333
-for page_number in range(nb_pages):
+
+for page_number in range(0, nb_pages):
     driver.get(current_url.format(page_number))
-    time.sleep(4)
     # take all the links
     soup = BeautifulSoup(driver.page_source, "lxml")
     intermediate_links = soup.find_all("a", {"class": "card__title-link"})
@@ -96,15 +98,14 @@ for page_number in range(nb_pages):
     ######################################
     #    Get the infos of each pages     #
     ######################################
-    
+
     donnees = []
 
     for url in collected_links:
-        (appart_links if current_search_id == 0 else house_links).append(url)
         driver.get(url)
         soup = BeautifulSoup(driver.page_source, "lxml")
 
-        # cherche le subtype dans "tous les biens" et skip si pas vide 
+        # cherche le subtype dans "tous les biens" et skip si pas vide
         # (les différents éléments des lots sont pris séparément)
         if get_bool_presence("h2", "text-block__title", "Tous les biens", soup):
             continue
@@ -121,7 +122,7 @@ for page_number in range(nb_pages):
         postal_code = None
         city = None
         property_subtype = None
-        
+
 
         # Général
         facade = None
@@ -157,10 +158,12 @@ for page_number in range(nb_pages):
         #####################
 
         # Base
-        postal_code = driver.find_element_by_css_selector("span.classified__information--address-row > span")
-        postal_code = int(postal_code.text.strip())
-        city = driver.find_element_by_css_selector("span.classified__information--address-row > span:nth-last-child(1)")
-        city = city.text.strip()
+        postal_code = search = re.search(search_for_postal_code, url).group("postal_code")
+        try:
+            city = driver.find_element_by_css_selector("p.classified__information--address-clickable").text.split(" — ")[-1].strip()
+        except NoSuchElementException:
+            # fallback
+            city = driver.find_element_by_css_selector("span.classified__information--address-row").text.split(" — ")[-1].replace("|", "").strip()
         property_subtype = driver.find_element_by_css_selector("h1.classified__title")
         property_subtype = property_subtype.text
 
@@ -267,13 +270,17 @@ for page_number in range(nb_pages):
             elif entete == "Finances":
                 lines = elem.find_all("div", {"class": "accordion__content"})
                 for line in lines:
-                    span = line.find_all("span", {"class":"sr-only"})
-                    price = int(span[0].text.replace("€", "").strip())
+                    span = line.find_all("span", {"class": "sr-only"})
+                    try:
+                        price = span[0].text.replace("€", "").strip()
+                    except IndexError:
+                        # fallback
+                        price = soup.find("p", {"class": "classified__price"}).find("span", {"class": "sr-only"}).text.replace("€", "").strip()
 
 
         data = {
             "Lien": url,
-            "Prix": price, 
+            "Prix": price,
             "Type de propriété": property_type[current_search_id],
             "Vente publique": vente_publique,
             "Immeuble de rapport": rapport,
@@ -301,17 +308,16 @@ for page_number in range(nb_pages):
 
         donnees.append(data)
 
-        
+
 
     ######################################
     #    Save the infos of each pages    #
     ######################################
 
     # Sauver avec panda => 1 csv : 30 entrées
-	if len(donnees) > 0: # if there is a least a data not skipped
-	df = pd.DataFrame(donnees)
-	df.to_csv("./immo-data/{}-{:03d}.csv".format(property_type[current_search_id].lower(), page_number), index=False)
-
+    if len(donnees) > 0: # if there is a least a data not skipped
+        df = pd.DataFrame(donnees)
+        df.to_csv("./immo-data/{}-{:03d}.csv".format(property_type[current_search_id].lower(), page_number), index=False)
 
 
 driver.close()
@@ -320,6 +326,7 @@ driver.close()
 #         Concat all the csv         #
 ######################################
 
-# all_files = glob.glob("./immo-data/*.csv")
-# concat_all_CSV(all_files)
+all_files = glob.glob("./immo-data/*.csv")
+csv = concat_all_CSV(all_files)
+print(csv.describe())
 
