@@ -70,13 +70,18 @@ def init_connection(driver: webdriver, url, title: str = None, check_button: boo
             print(e)
 
 
-def load_page(driver: webdriver, page_number: int, current_search_id: int) -> List[Dict]:
+def collect_links(driver: webdriver, page_number: int, current_search_id: int) -> List[str]:
     # target the right page
     driver.get((url_appart_search if current_search_id == 0 else url_house_search).format(page_number))
     # take all the links
     soup = BeautifulSoup(driver.page_source, "lxml")
     intermediate_links = soup.find_all("a", {"class": "card__title-link"})
-    collected_links = [link.get("href") for link in intermediate_links]
+    return [link.get("href") for link in intermediate_links]
+
+
+def load_page(driver: webdriver, page_number: int, current_search_id: int) -> List[Dict]:
+
+    collected_links = collect_links(driver, page_number, current_search_id)
 
     ######################################
     #    Get the infos of each pages     #
