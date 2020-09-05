@@ -308,6 +308,9 @@ for page_number in range(nb_pages):
     ######################################
 
     # Sauver avec panda => 1 csv : 30 entrées
+	if len(donnees) > 0: # if there is a least a data not skipped
+	df = pd.DataFrame(donnees)
+	df.to_csv("./immo-data/{}-{:03d}.csv".format(property_type[current_search_id].lower(), page_number), index=False)
 
 
 
