@@ -6,7 +6,7 @@ current_search_id = 1  # 0 == appartement / 1 == maison
 # min/max pages to process
 page_start = 1
 page_end = 334  # not included
-plage_page = [(1, 2), (2, 3), (3, 4)]
+plage_page = []  #[(1, 2), (2, 3), (3, 4)]
 is_firefox = False
 
 thread_list = []
