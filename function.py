@@ -285,7 +285,7 @@ def save_data(donnees: List[Dict], page_number, current_search_id: int):
     if len(donnees) > 0:  # if there is a least a data not skipped
         df = pd.DataFrame(donnees)
         df.to_csv("./immo-data/{}-{:03d}.csv".format(property_type[current_search_id].lower(), page_number),
-                  index=False)
+                  na_rep="None", index=False)
     else:
         print("Skipping to store an empty data for page {}".format(page_number))
 

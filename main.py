@@ -4,9 +4,9 @@ from function import *
 
 current_search_id = 1
 # min/max pages to process
-page_start = 0
-page_end = 333  # not included
-plage_page = [(0, 10), (10, 20)]
+page_start = 1
+page_end = 334  # not included
+plage_page = [(1, 2), (2, 3)]
 is_firefox = False
 
 thread_list = []
