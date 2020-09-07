@@ -134,8 +134,11 @@ def collect_info(driver: webdriver, url: str, current_search_id: int) -> Dict:
                 -1].strip()
     except NoSuchElementException:
         # fallback
-        city = driver.find_element_by_css_selector("span.classified__information--address-row").text.split(" — ")[
+        try:
+            city = driver.find_element_by_css_selector("span.classified__information--address-row").text.split(" — ")[
                 -1].replace("|", "").strip()
+        except NoSuchElementException:
+            city = url.split("?search")[0].split("/")[-3]
     property_subtype = driver.find_element_by_css_selector("h1.classified__title")
     property_subtype = property_subtype.text
 

@@ -22,4 +22,11 @@ for t in thread_list:
 
 csv = concat_all_csv("./immo-data/*.csv")
 if csv is not None:
+    print(len(csv))
+    # remove "?searchID"
+    csv["Lien"] = [i.split("?search")[0] for i in csv["Lien"]]
+    # remove duplicates based on column "Lien"
+    df = csv.drop_duplicates(subset=['Lien'])
+    print(len(df))
+
     print(csv.describe())

@@ -61,7 +61,12 @@ class CustomThread(Thread):
         collected_links = self.collect_links(current_url)
         donnees = []
         for url in collected_links:
-            data = collect_info(self.driver, url, self.search_id)
+            try:
+                data = collect_info(self.driver, url, self.search_id)
+            except AttributeError:
+                print("Skipping an entry with an attribute error for url: ", url)
+                continue
+
             if len(data) > 0:
                 donnees.append(data)
                 print(data)
