@@ -301,7 +301,14 @@ def concat_all_csv(all_files_path: str, recursive=False) -> Union[DataFrame, Non
     if len(all_files) > 0:
         df = pd.concat([pd.read_csv(filename, index_col=None, header=0) for filename in all_files], axis=0,
                        ignore_index=True)
-        # saved in the current folder
-        df.to_csv("immo_collect.csv")
-        return df
+        if df is not None:
+            print(len(df))
+            # remove "?searchID"
+            df["Lien"] = [i.split("?search")[0] for i in df["Lien"]]
+            # remove duplicates based on column "Lien"
+            df = df.drop_duplicates(subset=['Lien'])
+            print(len(df))
+            # saved in the current folder
+            df.to_csv("immo_collect.csv")
+            return df
     return None
