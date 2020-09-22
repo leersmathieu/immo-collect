@@ -2,18 +2,21 @@
 
 The purpose of this code is to retrieve precise information about houses and apartments for sale on Immoweb, and to register them on a single csv.
 
-### Who
+## Who
+
 For this first group project, we were 3 :
 - [Mathieu Leers](https://github.com/leersmathieu)
 - [Michaël Pietquin](https://github.com/mpietquin) 
 - [Demesmaeker Morgane](https://github.com/Demesmaeker) 
 
 
-### Methodology
+## Methodology
+
 Since it was the first group project, we decide to all work together, on one computer, and discuss everything we wanted to do and how to do it, instead of splitting the work between us. Like this, we learned differents methods to do the same thing, and choose the one's we agreed on.
 
 
-### Objectives
+## Objectives
+
 Use a python library to collect as much datas as possible.
 
 With this chalenge, we proved that we are :
@@ -22,7 +25,7 @@ With this chalenge, we proved that we are :
 - Able to implement a strategy to collect as much datas as possible.
 
 
-### When
+## When
 - Deadline: 07/09/2020 17:00
 - Duration: 3 days
 - Situation: 3rd week of the BeCode's formation about AI and Machine learning
@@ -32,14 +35,16 @@ With this chalenge, we proved that we are :
 10/09/20 : A real README, at last.
 
 
-### Where and what
+## Where and what
 All the work done was made during the BeCode's AI's formation 2020-2021.
 
 
-### Preview
-Coming soon
+## Results
+18285 entries with 23 columns  
+You can see the data scrapped in the "data branch" or just [here](https://raw.githubusercontent.com/leersmathieu/immo-collect/data/immo_collect.csv)
 
 
-### Progress
+
+## Progress
 **COMPLETE**
 
