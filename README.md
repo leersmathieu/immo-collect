@@ -1,3 +1,11 @@
+# Epic BeCode Project
+
+This is the very first part of the big project of my BeCode training.
+
+```The real estate company "ImmoEliza" wants to create a machine learning model to make price predictions on real estate sales in Belgium.```
+
+We all starting from scratch and, of course, the first step is to collect data and build a dataset.
+
 # immo-collect
 
 The purpose of this code is to retrieve precise information about houses and apartments for sale on Immoweb, and to register them on a single csv.
